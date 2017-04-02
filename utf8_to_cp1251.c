@@ -13,7 +13,7 @@ typedef struct {
     uint32_t unicode;
 } Conversion;
 
-/* Таблица преобразования кодов. Отсортирована по восзрастанию кодов Unicode
+/* Таблица преобразования кодов. Отсортирована по возрастанию кодов Unicode
  * для двоичного поиска. */
 static Conversion conversionTable[] = {
  /* {0x98, 0x0098}, */

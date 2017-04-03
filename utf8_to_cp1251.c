@@ -8,14 +8,9 @@
     #include <stdlib.h>
 #endif
 
-typedef struct {
-    uint8_t cp1251;
-    uint32_t unicode;
-} Conversion;
-
 /* Таблица преобразования кодов. Отсортирована по возрастанию кодов Unicode
  * для двоичного поиска. */
-static Conversion conversionTable[] = {
+static Cp1251 cp1251Table[] = {
  /* {0x98, 0x0098}, */
     {0xA0, 0x00A0}, /* NO-BREAK SPACE */
     {0xA4, 0x00A4}, /* CURRENCY SIGN */
@@ -82,10 +77,16 @@ static Conversion conversionTable[] = {
     {0x99, 0x2122}  /* TRADE MARK SIGN */
 };
 
+static Cp1251 * customCp1251Table = 0;
+
+void setCustomCp1251Table(Cp1251 * table) {
+    customCp1251Table = table;
+}
+
 #ifndef UTF8_TO_CP1251_LINEAR_SEARCH
 /* Функция сравнения для двоичного поиска. */
 static int compareConversion (const void * s1, const void * s2) {
-    return ((Conversion *)s1)->unicode - ((Conversion *)s2)->unicode;
+    return ((Cp1251 *)s1)->unicode - ((Cp1251 *)s2)->unicode;
 }
 #endif
 
@@ -161,7 +162,7 @@ int convertUtf8ToCp1251(const char * utf8, char * cp1251)
                         /* TODO: Поиск в таблице подмен */
 
                         const size_t tableSize =
-                            sizeof(conversionTable) / sizeof(Conversion);
+                            sizeof(cp1251Table) / sizeof(Cp1251);
 
                         #ifdef UTF8_TO_CP1251_LINEAR_SEARCH
                         /* Линейный (последовательный) поиск */
@@ -173,12 +174,12 @@ int convertUtf8ToCp1251(const char * utf8, char * cp1251)
                         }
                         #else
                         /* Двоичный поиск */
-                        const Conversion key = {0, unicode};
-                        const Conversion * conversion = bsearch(
+                        const Cp1251 key = {0, unicode};
+                        const Cp1251 * conversion = bsearch(
                             &key,
-                            conversionTable,
+                            cp1251Table,
                             tableSize,
-                            sizeof(Conversion),
+                            sizeof(Cp1251),
                             compareConversion
                         );
 

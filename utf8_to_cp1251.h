@@ -2,6 +2,8 @@
 #ifndef UTF8_TO_CP1251_H_20170402_195220
 #define UTF8_TO_CP1251_H_20170402_195220
 
+#include <stdint.h>
+
 #ifdef __cplusplus
     extern "C" {
 #endif
@@ -11,6 +13,13 @@
  * Строка utf8 должна кончаться нуль-символом '\0'.
 */
 int convertUtf8ToCp1251(const char * utf8, char * cp1251);
+
+typedef struct {
+    uint8_t cp1251;
+    uint32_t unicode;
+} Cp1251;
+
+void setCustomCp1251Table(Cp1251 * table);
 
 /* Раскоменируйте строчку ниже, чтобы для конвертации использовать линейный
  * (последовательный) поиск вместо двочного. Поиск требуется для сопоставления

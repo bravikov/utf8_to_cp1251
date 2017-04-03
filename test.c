@@ -8,16 +8,25 @@ typedef struct {
     const char * name;
     const char * utf8;
     const char * cp1251;
+    const Cp1251 * customTable;
+    const size_t customTableSize;
 } TestData;
 
 int main(void) {
+    static const Cp1251 cp1251Table[] = {
+        {0x98, 0x03C6}, /* φ, GREEK SMALL LETTER PHI */
+        {0x80, 0x2211}, /* ∑, N-ARY SUMMATION */
+        {0x81, 0x25BA}, /* ►, BLACK RIGHT-POINTING POINTER */
+    };
+
     size_t i;
 
     const TestData testStrings[] = {
         {
             "Пустая строка",
             "",
-            ""
+            "",
+            0, 0
         },
         {
             "US-ASCII",
@@ -34,7 +43,9 @@ int main(void) {
             "\x41\x42\x43\x44\x45\x46\x47\x48\x49\x4A\x4B\x4C\x4D\x4E\x4F\x50"
             "\x51\x52\x53\x54\x55\x56\x57\x58\x59\x5A\x5B\x5C\x5D\x5E\x5F\x60"
             "\x61\x62\x63\x64\x65\x66\x67\x68\x69\x6A\x6B\x6C\x6D\x6E\x6F\x70"
-            "\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7A\x7B\x7C\x7D\x7E\x7F"
+            "\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7A\x7B\x7C\x7D\x7E\x7F",
+
+            0, 0
         },
         {
             "Кириллица",
@@ -44,12 +55,16 @@ int main(void) {
             "\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF"
             "\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF"
             "\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF"
-            "\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF"
+            "\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF",
+
+            0, 0
         },
         {
             "Cимволы разных размеров",
             "яzяzя",
-            "\xFF\x7A\xFF\x7A\xFF"
+            "\xFF\x7A\xFF\x7A\xFF",
+
+            0, 0
         },
         {
             "Символы CP1251 0x80...0xBF",
@@ -62,12 +77,22 @@ int main(void) {
             "\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8A\x8B\x8C\x8D\x8E\x8F"
             "\x90\x91\x92\x93\x94\x95\x96\x97"  "\x99\x9A\x9B\x9C\x9D\x9E\x9F"
             "\xA0\xA1\xA2\xA3\xA4\xA5\xA6\xA7\xA8\xA9\xAA\xAB\xAC\xAD\xAE\xAF"
-            "\xB0\xB1\xB2\xB3\xB4\xB5\xB6\xB7\xB8\xB9\xBA\xBB\xBC\xBD\xBE\xBF"
+            "\xB0\xB1\xB2\xB3\xB4\xB5\xB6\xB7\xB8\xB9\xBA\xBB\xBC\xBD\xBE\xBF",
+
+            0, 0
+        },
+        {
+            "Пользовательская таблица",
+            "φ∑►±эюя",
+            "\x98\x80\x81\xB1\xFD\xFE\xFF",
+            cp1251Table, sizeof(cp1251Table) / sizeof(Cp1251)
         }
         /*{
             "Шаблон",
             "",
-            ""
+            "",
+            0,
+            0
         }*/
     };
 
@@ -75,6 +100,10 @@ int main(void) {
 
     for (i = 0; i < testCount; i++) {
         const TestData test = testStrings[i];
+
+        if (test.customTable != 0) {
+                setCustomCp1251Table(test.customTable, test.customTableSize);
+        }
 
         const int cp1251Size = strlen(test.cp1251) + 1;
         char * cp1251 = malloc(cp1251Size);

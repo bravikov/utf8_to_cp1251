@@ -3,6 +3,7 @@
 #define UTF8_TO_CP1251_H_20170402_195220
 
 #include <stdint.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
     extern "C" {
@@ -19,7 +20,7 @@ typedef struct {
     uint32_t unicode;
 } Cp1251;
 
-void setCustomCp1251Table(Cp1251 * table);
+void setCustomCp1251Table(const Cp1251 * table, const size_t count);
 
 /* Раскоменируйте строчку ниже, чтобы для конвертации использовать линейный
  * (последовательный) поиск вместо двочного. Поиск требуется для сопоставления

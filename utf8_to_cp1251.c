@@ -1,7 +1,5 @@
 #include "utf8_to_cp1251.h"
 #include "bit.h"
-#include <stdint.h>
-#include <stddef.h>
 #include <stdbool.h>
 
 #ifndef UTF8_TO_CP1251_LINEAR_SEARCH
@@ -10,7 +8,7 @@
 
 /* Таблица преобразования кодов. Отсортирована по возрастанию кодов Unicode
  * для двоичного поиска. */
-static Cp1251 cp1251Table[] = {
+static const Cp1251 cp1251Table[] = {
  /* {0x98, 0x0098}, */
     {0xA0, 0x00A0}, /* NO-BREAK SPACE */
     {0xA4, 0x00A4}, /* CURRENCY SIGN */
@@ -77,10 +75,12 @@ static Cp1251 cp1251Table[] = {
     {0x99, 0x2122}  /* TRADE MARK SIGN */
 };
 
-static Cp1251 * customCp1251Table = 0;
+static const Cp1251 * customCp1251Table = 0;
+static size_t customCp1251TableSize = 0;
 
-void setCustomCp1251Table(Cp1251 * table) {
+void setCustomCp1251Table(const Cp1251 * table, const size_t count) {
     customCp1251Table = table;
+    customCp1251TableSize = count;
 }
 
 #ifndef UTF8_TO_CP1251_LINEAR_SEARCH
@@ -159,34 +159,52 @@ int convertUtf8ToCp1251(const char * utf8, char * cp1251)
                         cp1251[cp1251_i++] = 0xC0 + unicode - 0x410;
                     }
                     else {
-                        /* TODO: Поиск в таблице подмен */
+                        const Cp1251 * tables[] = {
+                            customCp1251Table,
+                            cp1251Table
+                        };
+                        const size_t tableSizes[] = {
+                            customCp1251TableSize,
+                            sizeof(cp1251Table) / sizeof(Cp1251),
+                        };
 
-                        const size_t tableSize =
-                            sizeof(cp1251Table) / sizeof(Cp1251);
+                        size_t t;
+                        bool found = false;
+                        for (t = 0; t < 2; t++) {
+#                           ifdef UTF8_TO_CP1251_LINEAR_SEARCH
+                            /* Линейный (последовательный) поиск */
+                            size_t u;
+                            for (u = 0; u < tableSizes[t]; u++) {
+                                if (unicode == tables[t][u].unicode) {
+                                    cp1251[cp1251_i++] =
+                                        tables[t][u].cp1251;
+                                    found = true;
+                                    break;
+                                }
+                            }
 
-                        #ifdef UTF8_TO_CP1251_LINEAR_SEARCH
-                        /* Линейный (последовательный) поиск */
-                        for (size_t l = 0; l < tableSize; l++) {
-                            if (unicode == conversionTable[l].unicode) {
-                                cp1251[cp1251_i++] = conversionTable[l].cp1251;
+                            if (found) {
                                 break;
                             }
-                        }
-                        #else
-                        /* Двоичный поиск */
-                        const Cp1251 key = {0, unicode};
-                        const Cp1251 * conversion = bsearch(
-                            &key,
-                            cp1251Table,
-                            tableSize,
-                            sizeof(Cp1251),
-                            compareConversion
-                        );
 
-                        if (conversion) {
-                            cp1251[cp1251_i++] = conversion->cp1251;
+#                           else
+                            /* Двоичный поиск */
+                            const Cp1251 key = {0, unicode};
+
+                            const Cp1251 * conversion = bsearch(
+                                &key,
+                                tables[t],
+                                tableSizes[t],
+                                sizeof(Cp1251),
+                                compareConversion
+                            );
+
+                            if (conversion) {
+                                cp1251[cp1251_i++] = conversion->cp1251;
+                                break;
+                            }
+#                           endif
                         }
-                        #endif
                     }
                 }
             }

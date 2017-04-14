@@ -169,7 +169,11 @@ int convertUtf8ToCp1251(const char * utf8, char * cp1251)
                         };
 
                         size_t t;
+
+#                       ifdef UTF8_TO_CP1251_LINEAR_SEARCH
                         bool found = false;
+#                       endif
+
                         for (t = 0; t < 2; t++) {
 #                           ifdef UTF8_TO_CP1251_LINEAR_SEARCH
                             /* Линейный (последовательный) поиск */

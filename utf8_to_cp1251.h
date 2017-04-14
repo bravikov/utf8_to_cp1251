@@ -1,3 +1,7 @@
+/* Библиотека на языке C для конвертации строк из кодировки UTF-8 в CP1251
+ * Адрес проекта: https://github.com/bravikov/utf8_to_cp1251
+ * */
+
 #pragma once
 #ifndef UTF8_TO_CP1251_H_20170402_195220
 #define UTF8_TO_CP1251_H_20170402_195220

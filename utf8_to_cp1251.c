@@ -1,3 +1,7 @@
+/* Библиотека на языке C для конвертации строк из кодировки UTF-8 в CP1251
+ * Адрес проекта: https://github.com/bravikov/utf8_to_cp1251
+ * */
+
 #include "utf8_to_cp1251.h"
 #include "bit.h"
 #include <stdbool.h>
